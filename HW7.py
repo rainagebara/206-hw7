@@ -1,8 +1,8 @@
 
-# Your name:
-# Your student id:
-# Your email:
-# List who you have worked with on this project:
+# Your name: Raina Gebara 
+# Your student id: 4362 8242
+# Your email: rngebara@umich.edu
+# List who you have worked with on this project: Julia Coffman 
 
 import unittest
 import sqlite3
