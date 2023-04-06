@@ -2,7 +2,7 @@
 # Your name: Raina Gebara 
 # Your student id: 4362 8242
 # Your email: rngebara@umich.edu
-# List who you have worked with on this project: Julia Coffman 
+# List who you have worked with on this project: Julia Coffman and Emily Libman
 
 import unittest
 import sqlite3
@@ -53,7 +53,25 @@ def make_positions_table(data, cur, conn):
 #     created for you -- see make_positions_table above for details.
 
 def make_players_table(data, cur, conn):
-    pass
+    cur.execute("DROP TABLE IF EXISTS Players")
+    cur.execute("CREATE TABLE IF NOT EXISTS Players (id INTEGER PRIMARY KEY, name TEXT, position_id INTEGER, birthyear INTEGER, nationality TEXT)")
+    conn.commit()
+
+    cur.execute("SELECT * FROM Positions")
+    positions_data = cur.fetchall()
+    positions = {position[1]: position[0] for position in positions_data}
+
+    # Insert the player data into the Players table
+    for player in data['squad']:
+        position = player['position']
+        name = player['name']
+        birthyear = int(player['dateOfBirth'][:4]) # Extract birthyear from dateOfBirth
+        nationality = player['nationality']
+        position_id = positions[position]
+
+        cur.execute("INSERT INTO Players (id, name, position_id, birthyear, nationality) VALUES (?, ?, ?, ?, ?)", (player['id'], name, position_id, birthyear, nationality))
+    conn.commit()
+    
 
 ## [TASK 2]: 10 points
 # Finish the function nationality_search
@@ -66,7 +84,17 @@ def make_players_table(data, cur, conn):
         # the player's name, their position_id, and their nationality.
 
 def nationality_search(countries, cur, conn):
-    pass
+    cur.execute("SELECT * FROM Players")
+    players_data = cur.fetchall()
+    return_list = []
+    for rows in players_data:
+        current_nationality = rows[4]
+        if current_nationality in countries:
+            name = rows[1]
+            position_id = rows[2]
+            return_list.append((name, position_id, current_nationality))
+    conn.commit()
+    return return_list
 
 ## [TASK 3]: 10 points
 # finish the function birthyear_nationality_search
@@ -83,9 +111,19 @@ def nationality_search(countries, cur, conn):
 #     This function returns a list of tuples each containing 
 #     the player’s name, nationality, and birth year. 
 
-
 def birthyear_nationality_search(age, country, cur, conn):
-    pass
+    cur.execute("SELECT * FROM Players")
+    players_data = cur.fetchall()
+    return_list = []
+    for rows in players_data:
+        current_nationality = rows[4]
+        birthyear = rows[3]
+        birthage = 2023- birthyear
+        name = rows[1]
+        if current_nationality == country and birthage >= age:
+            return_list.append((name, current_nationality, birthyear))
+    conn.commit()
+    return return_list
 
 ## [TASK 4]: 15 points
 # finish the function position_birth_search
@@ -105,8 +143,23 @@ def birthyear_nationality_search(age, country, cur, conn):
     # HINT: You'll have to use JOIN for this task.
 
 def position_birth_search(position, age, cur, conn):
-       pass
+    cur.execute("SELECT * FROM Players")
+    players_data = cur.fetchall()
+    cur.execute("SELECT * FROM Positions")
+    positions_data = cur.fetchall()
+    positions = {position_wanted[0]: position_wanted[1] for position_wanted in positions_data}
 
+    return_list = []
+    for rows in players_data:
+        birthyear = rows[3]
+        birthage = 2023- birthyear
+        name = rows[1]
+        position_id = rows[2]
+        position_name = positions[position_id]
+        if position_name == position and birthage < age:
+            return_list.append((name, position_name, birthyear))
+    conn.commit()
+    return return_list
 
 # [EXTRA CREDIT]
 # You’ll make 3 new functions, make_winners_table(), make_seasons_table(),
@@ -204,22 +257,22 @@ class TestAllMethods(unittest.TestCase):
         self.assertEqual(len(c), 1)
         self.assertEqual(c, [('Teden Mengi', 'Defence', 2002)])
     
-    # test extra credit
-    def test_make_winners_table(self):
-        self.cur2.execute('SELECT * from Winners')
-        winners_list = self.cur2.fetchall()
+    # # test extra credit
+    # def test_make_winners_table(self):
+    #     self.cur2.execute('SELECT * from Winners')
+    #     winners_list = self.cur2.fetchall()
 
-        pass
+    #     pass
 
-    def test_make_seasons_table(self):
-        self.cur2.execute('SELECT * from Seasons')
-        seasons_list = self.cur2.fetchall()
+    # def test_make_seasons_table(self):
+    #     self.cur2.execute('SELECT * from Seasons')
+    #     seasons_list = self.cur2.fetchall()
 
-        pass
+    #     pass
 
-    def test_winners_since_search(self):
+    # def test_winners_since_search(self):
 
-        pass
+    #     pass
 
 
 def main():
